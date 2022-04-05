@@ -1,0 +1,2 @@
+# lab2_umjetna
+ 
