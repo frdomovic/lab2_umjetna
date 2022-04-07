@@ -1,4 +1,5 @@
 from queue import Queue
+import operator
 def tautology_check(resolvents):
     literal_list = resolvents.split(" v ")
     new_literals = set()
@@ -97,35 +98,45 @@ def resolution_algorithm(cset,indexing,final_c):
         if(c1 != "none" and c2 !="none"):
             resolvents = plResolve(c1,c2)
             if(resolvents != "none"):
-                parent_tree[resolvents] = {c1,c2}
+                parent_tree[resolvents] = {" v ".join(sorted(c1.split(" v ")))," v ".join(sorted(c2.split(" v ")))}
             if resolvents == "NIL":
                 index = 1
+                new_indexing = {}
                 clauses_indexing[resolvents] = len(clauses_indexing)
                 for i in clauses_indexing:
                     if(index <= len(cset)):
-                        print(str(clauses_indexing[i]+1)+". "+i)
+                        new_indexing[i] = len(new_indexing)
                         index += 1
                     elif(index == len(cset)+1):
-                        print(str(clauses_indexing[i]+1)+". "+i)
-                        print("===============")
+                        new_indexing[i] = len(new_indexing)
                         index += 1
-                novi = {}
                 queue = Queue()
                 queue.put(resolvents)
                 a,b = parent_tree[resolvents]
-                novi[resolvents] = {clauses_indexing[a]+1,clauses_indexing[b]+1}
+                new_indexing[resolvents] = len(new_indexing)
+                tmp_arr = []
                 while not queue.empty():
                     node = queue.get()
                     if(node in parent_tree and parent_tree[node]):
                         a,b = parent_tree[node]
-                        novi[node] = {clauses_indexing[a]+1,clauses_indexing[b]+1}
+                        tmp_arr.append(node)
                         if(a):
                             queue.put(a)
                         if(b):
-                            queue.put(b)       
-                for k in reversed(novi):
-                    a,b = novi[k]
-                    print(str(clauses_indexing[k]+1)+". "+k+" ("+str(a)+" , "+str(b)+")")
+                            queue.put(b)
+                tmp_arr = tmp_arr[::-1]
+                for el in tmp_arr:
+                    new_indexing[el] = len(new_indexing)        
+                sorted_x = sorted(new_indexing.items(), key=operator.itemgetter(1))
+                for k in sorted_x:
+                    if(k[1] < len(cset)):
+                        print(str(k[1]+1)+". "+k[0])
+                    elif(k[1] == len(cset)):
+                        print(str(k[1]+1)+". "+k[0])
+                        print("==============")
+                    else:
+                        a,b = parent_tree[k[0]]
+                        print(str(k[1]+1)+". "+k[0]+" ("+str(new_indexing[a]+1)+" , "+str(new_indexing[b]+1)+")")
                 print("===============")
                 print("[CONCLUSION]: "+final_c+" is true")
                 return
@@ -141,30 +152,13 @@ def resolution_algorithm(cset,indexing,final_c):
             result_clauses = redundant_check(result_clauses,tmp)
             sos = redundant_check(sos,tmp)
             clauses_set = redundant_check(clauses_set,tmp)
-            clauses_indexing[resolvents] = len(clauses_indexing)
+            resol_tmp = " v ".join(sorted(resolvents.split(" v ")))
+            clauses_indexing[resol_tmp] = len(clauses_indexing)
             result_clauses.add(resolvents)
         else:
-            index = 0
-            for i in clauses_indexing:
-                if(index <= len(cset)):
-                    print(str(clauses_indexing[i]+1)+". "+i)
-                    index += 1
-                elif(index == len(cset)+1):
-                    print(str(clauses_indexing[i]+1)+". "+i)
-                    print("===============")
-                    index += 1
             print("[CONCLUSION]: "+final_c+" is unknown")
             return   
         if not flag:
-            index = 0
-            for i in clauses_indexing:
-                if(index <= len(cset)):
-                    print(str(clauses_indexing[i]+1)+". "+i)
-                    index += 1
-                elif(index == len(cset)+1):
-                    print(str(clauses_indexing[i]+1)+". "+i)
-                    print("===============")
-                    index += 1
             print("[CONCLUSION]: "+final_c+" is unknown")
             return
         tmp_sos = redundant_check(result_clauses,sos)
